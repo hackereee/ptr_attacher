@@ -1,4 +1,4 @@
-package ptra.hacc.cc.pulltorefreshattacher;
+package ptra.hacc.cc.ptr;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -7,6 +7,7 @@ import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingChildHelper;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 /**
@@ -17,6 +18,10 @@ import android.widget.RelativeLayout;
 public class PullToRefershAttacher extends RelativeLayout implements NestedScrollingChild{
 
     private NestedScrollingChildHelper mScrollingChildHelper;
+    public static final int HORIZONTAL = LinearLayout.HORIZONTAL;
+    public static final int VERTICAL = LinearLayout.VERTICAL;
+    //方向
+    private int mOrientation = VERTICAL;
 
     public PullToRefershAttacher(@NonNull  Context context, @NonNull View view){
         super(context);
@@ -38,6 +43,14 @@ public class PullToRefershAttacher extends RelativeLayout implements NestedScrol
     @TargetApi(21)
     private PullToRefershAttacher(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+
+    public void setOrientation(int orientation){
+        if(orientation != HORIZONTAL && orientation != VERTICAL){
+            throw  new IllegalArgumentException("the orientation must be HORIZONTAL or VERTICAL");
+        }
+        this.mOrientation = orientation;
     }
 
     /**
