@@ -5,26 +5,42 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingChildHelper;
+import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
 /**
  * Created by Hale Yang on 2017/8/16.
  * 此乃下拉刷新容器
  */
 
-public class PullToRefershAttacher extends RelativeLayout implements NestedScrollingChild{
+public class PullToRefershAttacher extends LinearLayout implements NestedScrollingChild{
 
     private NestedScrollingChildHelper mScrollingChildHelper;
     public static final int HORIZONTAL = LinearLayout.HORIZONTAL;
     public static final int VERTICAL = LinearLayout.VERTICAL;
     //方向
     private int mOrientation = VERTICAL;
+    //
+    private ViewDragHelper mViewDragHelper;
 
     public PullToRefershAttacher(@NonNull  Context context, @NonNull View view){
         super(context);
+        if(view.getLayoutParams() == null){
+            view.setLayoutParams(generateDefaultLayoutParams());
+        }
+        setLayoutParams(view.getLayoutParams());
+        ViewParent parent = view.getParent();
+        if(parent != null){
+            ViewGroup parentG = (ViewGroup) parent;
+            parentG.removeView(view);
+            parentG.addView(this);
+        }
+        addView(view);
     }
 
     private PullToRefershAttacher(Context context) {
@@ -43,6 +59,11 @@ public class PullToRefershAttacher extends RelativeLayout implements NestedScrol
     @TargetApi(21)
     private PullToRefershAttacher(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+
+    private void init(Context context, AttributeSet attrs){
+        mViewDragHelper = ViewDragHelper.create(this, ViewConfiguration.get(context).getScaledTouchSlop(), new PullCallback());
     }
 
 
@@ -110,5 +131,41 @@ public class PullToRefershAttacher extends RelativeLayout implements NestedScrol
         return mScrollingChildHelper;
     }
 
+
+    @Override
+    protected LayoutParams generateDefaultLayoutParams() {
+        return new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+    }
+
+    /**
+     * ViewDragHelper callback
+     */
+    private class PullCallback extends ViewDragHelper.Callback{
+
+        @Override
+        public int getViewHorizontalDragRange(View child) {
+            return super.getViewHorizontalDragRange(child);
+        }
+
+        @Override
+        public int getViewVerticalDragRange(View child) {
+            return super.getViewVerticalDragRange(child);
+        }
+
+        @Override
+        public int clampViewPositionHorizontal(View child, int left, int dx) {
+            return super.clampViewPositionHorizontal(child, left, dx);
+        }
+
+        @Override
+        public int clampViewPositionVertical(View child, int top, int dy) {
+            return super.clampViewPositionVertical(child, top, dy);
+        }
+
+        @Override
+         public boolean tryCaptureView(View child, int pointerId) {
+             return false;
+         }
+     }
 
 }
