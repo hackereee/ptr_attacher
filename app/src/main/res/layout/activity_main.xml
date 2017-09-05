@@ -1,65 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:fitsSystemWindows="true"
-    android:fillViewport="true"
-    android:scrollbars="vertical"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ptr="http://schemas.android.com/apk/res-auto"
+    xmlns:design="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <android.support.design.widget.CollapsingToolbarLayout
+        android:id="@+id/collapsing_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        >
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="200dp"
-            android:src="@mipmap/ic_launcher"
-            android:background="@android:color/holo_red_dark"
-            android:layout_gravity="center_horizontal"/>
-        <TextView
+        design:titleEnabled="false"
+        design:contentScrim="@android:color/transparent"
+        design:statusBarScrim="@android:color/transparent"
+        design:layout_scrollFlags="scroll|exitUntilCollapsed">
+        <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="12adasdklasdjklasdjkalksdjalksdjalksdjalksdjalksdjalksjdlaksdjalksdjalksdjalksdjalksdjalksdjalksd
-            asd
-            a
-            sd
-            a
-            sd
-            as
-            d
-            as
-            d
-            asd
-            a
-            sd
-            a
-            sd
-            as
-            d
-            asd
-            a
-            sdas
-            da
-            sd
-            as
-            da
-            sd
-            a
-            sd
-            aas
-
-            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nas
-            3"
-            android:gravity="center"
-            android:background="@android:color/holo_blue_bright"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="100dp"
-            android:src="@mipmap/ic_launcher"
-            android:background="@android:color/holo_blue_dark"
-            android:layout_gravity="center_horizontal"/>
-    </LinearLayout>
-</ScrollView>
+            android:id="@+id/testButton"
+            android:text="@string/content_nested_scroll"/>
+    </android.support.design.widget.CollapsingToolbarLayout>
+    </android.support.design.widget.AppBarLayout>
+<ptra.hacc.cc.pulltorefreshattacher.PulltoRefreshURecyclerView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    design:layout_behavior="@string/appbar_scrolling_view_behavior"
+    ptr:ptrShowIndicator="false"
+    ptr:ptrListViewExtrasEnabled="true"
+    ptr:ptrAnimationStyle="flip"
+    android:id="@+id/ptr"/>
+</android.support.design.widget.CoordinatorLayout>

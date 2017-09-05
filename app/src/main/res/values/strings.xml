@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PullToRefreshAttacher</string>
+    <string name="content_nested_scroll">this is an nested scroll view</string>
 </resources>
