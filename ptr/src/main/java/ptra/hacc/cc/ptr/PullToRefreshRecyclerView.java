@@ -15,7 +15,7 @@ import android.widget.LinearLayout;
 
 /**
  * Created by Hale Yang on 2017/8/30.
- * pull to refreshing for Recyclerview
+ * pull to refreshing for RecyclerView
  */
 
 public class PullToRefreshRecyclerView extends PullToNestedRefreshBase<RecyclerView>{
