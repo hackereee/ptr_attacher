@@ -138,7 +138,7 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
         }
         offset[0] = realOffset[0];
         offset[1] = realOffset[1];
-        return canPull;
+        return offset[0] <= 0  && offset[1] <= 0;
 
     }
 }

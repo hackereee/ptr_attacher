@@ -337,8 +337,8 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 				if (mIsBeingDragged) {
 					int[] consumed = new int[2];
 					int[] offset = new int[2];
-					float dx = event.getX() - mLastMotionX;
-					float dy = event.getY() - mLastMotionY;
+					float dx =  mLastMotionX - event.getX();
+					float dy =  mLastMotionY - event.getY();
 					if(!onExtractMoveEvent(dx, dy, consumed, offset)){
 						event.offsetLocation(offset[0], offset[1]);
 						return false;
@@ -753,6 +753,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset){
 		return  true;
 	}
+
 
 	/**
 	 * Called when the UI has been to be updated to be in the

@@ -80,7 +80,7 @@ public class PullToRefreshRecyclerView extends PullToNestedRefreshBase<RecyclerV
                 int position = lm.findLastVisibleItemPosition();
                 if (position == lm.getItemCount() - 1) {
                     View child = lm.findViewByPosition(position);
-                    if (child != null && child.getTop() == recyclerView.getTop()) {
+                    if (child != null && child.getBottom() <= recyclerView.getBottom()) {
                         readyForPull = true;
                     }
                 }else if(position < 0){
@@ -97,7 +97,7 @@ public class PullToRefreshRecyclerView extends PullToNestedRefreshBase<RecyclerV
                             break;
                         }
                         View child = sm.findViewByPosition(positions[i]);
-                        if(child.getTop() == recyclerView.getTop()){
+                        if(child.getBottom() <= recyclerView.getBottom()){
                             readyForPull = true;
                             break;
                         }

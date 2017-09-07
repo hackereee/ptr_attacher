@@ -66,18 +66,24 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPullUpToRefresh(PullToRefreshBase<RecyclerView> refreshView) {
-                List<TestEntity> entities = new ArrayList<>();
-                for(int i = 0; i <= 5; i++){
-                    TestEntity entity = new TestEntity();
-                    entity.setContent("this is the " + i + " content");
-                    entities.add(entity);
-                }
-                try {
-                    Thread.sleep(3 * 1000);
-                } catch (InterruptedException e) {
+                mTestRequest.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        List<TestEntity> entities = new ArrayList<>();
+                        for(int i = 0; i <= 5; i++){
+                            TestEntity entity = new TestEntity();
+                            entity.setContent("this is the " + i + " content");
+                            entities.add(entity);
+                        }
+                        try {
+                            Thread.sleep(3 * 1000);
+                        } catch (InterruptedException e) {
 //                            e.printStackTrace();
-                }
-                mHandler.obtainMessage(MineHanlder.ADDMORE_LIST, entities).sendToTarget();
+                        }
+                        mHandler.obtainMessage(MineHanlder.ADDMORE_LIST, entities).sendToTarget();
+                    }
+                });
+
             }
         });
         mAdapter = new MineAdapter();
