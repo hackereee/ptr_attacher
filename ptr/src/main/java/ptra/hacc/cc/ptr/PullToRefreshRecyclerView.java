@@ -2,6 +2,7 @@ package ptra.hacc.cc.ptr;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -40,8 +41,6 @@ public class PullToRefreshRecyclerView extends PullToNestedRefreshBase<RecyclerV
     public PullToRefreshRecyclerView(Context context, Mode mode, AnimationStyle animStyle) {
         super(context, mode, animStyle);
     }
-
-
 
     public void setLayoutManager(RecyclerView.LayoutManager layoutManager){
         getRefreshableView().setLayoutManager(layoutManager);
