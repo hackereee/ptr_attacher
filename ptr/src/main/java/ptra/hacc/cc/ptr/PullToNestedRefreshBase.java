@@ -119,26 +119,29 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
      * @return true or false
      */
     @Override
-    protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset) {
+    protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset,@EXTRA_STATE int extraState) {
         boolean canPull = true;
-        int axes = getPullToRefreshScrollDirection() == Orientation.VERTICAL ? ViewCompat.SCROLL_AXIS_VERTICAL : ViewCompat.SCROLL_AXIS_HORIZONTAL;
-        startNestedScroll(axes);
         int[] realOffset = new int[2];
         int unConsumedX = (int) dx, unConsumedY = (int) dy;
-        if(dispatchNestedPreScroll((int)dx, (int)dy, consumed, offset)){
-            unConsumedX = (int) (dx - consumed[0]);
-            unConsumedY = (int) (dy - consumed[1]);
-            realOffset = offset;
-            canPull = false;
+        if(extraState == EXTRA_START){
+            int axes = getPullToRefreshScrollDirection() == Orientation.VERTICAL ? ViewCompat.SCROLL_AXIS_VERTICAL : ViewCompat.SCROLL_AXIS_HORIZONTAL;
+            startNestedScroll(axes);
+        }else if((getPullToRefreshScrollDirection() == Orientation.VERTICAL && dy < 0)
+                || (getPullToRefreshScrollDirection() == Orientation.HORIZONTAL) && dx < 0){
+            if(dispatchNestedPreScroll((int)dx, (int)dy, consumed, offset)){
+                unConsumedX = (int) (dx - consumed[0]);
+                unConsumedY = (int) (dy - consumed[1]);
+                realOffset = offset;
+                canPull = false;
+            }
+            if(dispatchNestedScroll(consumed[0], consumed[1], unConsumedX, unConsumedY, offset)){
+                realOffset[0] += offset[0];
+                realOffset[1] += offset[1];
+                canPull = false;
+            }
+            offset[0] = realOffset[0];
+            offset[1] = realOffset[1];
         }
-        if(dispatchNestedScroll(consumed[0], consumed[1], unConsumedX, unConsumedY, offset)){
-            realOffset[0] += offset[0];
-            realOffset[1] += offset[1];
-            canPull = false;
-        }
-        offset[0] = realOffset[0];
-        offset[1] = realOffset[1];
         return offset[0] <= 0  && offset[1] <= 0;
-
     }
 }

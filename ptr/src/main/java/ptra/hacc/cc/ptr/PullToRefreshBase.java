@@ -22,6 +22,7 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.IntDef;
 import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingChildHelper;
 import android.util.AttributeSet;
@@ -36,6 +37,9 @@ import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 import ptra.hacc.cc.ptr.internal.FlipLoadingLayout;
 import ptra.hacc.cc.ptr.internal.LoadingLayout;
 import ptra.hacc.cc.ptr.internal.RotateLoadingLayout;
@@ -44,6 +48,15 @@ import ptra.hacc.cc.ptr.internal.ViewCompat;
 
 
 public abstract class PullToRefreshBase<T extends View> extends LinearLayout implements IPullToRefresh<T>{
+
+	protected static final int EXTRA_START = 0x1;
+	protected static final int EXTRA_BEFORE_PULL = 0x2;
+	protected static final int EXTRA_AFTER_PULL = 0x3;
+
+	@IntDef({EXTRA_START, EXTRA_BEFORE_PULL, EXTRA_AFTER_PULL})
+	@Retention(RetentionPolicy.SOURCE)
+	protected  @interface EXTRA_STATE{}
+
 
 	// ===========================================================
 	// Constants
@@ -234,6 +247,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 
 	@Override
 	public final boolean onInterceptTouchEvent(MotionEvent event) {
+		boolean extraIntercept = false;
 
 		if (!isPullToRefreshEnabled()) {
 			return false;
@@ -251,6 +265,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 		}
 
 		switch (action) {
+
 			case MotionEvent.ACTION_MOVE: {
 				// If we're refreshing, and the flag is set. Eat all MOVE events
 				if (!mScrollingWhileRefreshingEnabled && isRefreshing()) {
@@ -258,6 +273,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 				}
 
 				if (isReadyForPull()) {
+//					extraIntercept = onExtraInterceptMove();
 					final float y = event.getY(), x = event.getX();
 					final float diff, oppositeDiff, absDiff;
 
@@ -306,7 +322,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 			}
 		}
 
-		return mIsBeingDragged;
+		return mIsBeingDragged/* || extraIntercept*/;
 	}
 
 	@Override
@@ -335,11 +351,12 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_MOVE: {
 				if (mIsBeingDragged) {
+					onExtractMoveEvent(0.0f, 0.0f, new int[2], new int[2], EXTRA_START);
 					int[] consumed = new int[2];
 					int[] offset = new int[2];
 					float dx =  mLastMotionX - event.getX();
 					float dy =  mLastMotionY - event.getY();
-					if(!onExtractMoveEvent(dx, dy, consumed, offset)){
+					if(!onExtractMoveEvent(dx, dy, consumed, offset, EXTRA_BEFORE_PULL)){
 						event.offsetLocation(offset[0], offset[1]);
 						return false;
 					}
@@ -750,9 +767,17 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	 * @param offset save the offset
 	 * @return if the return is true that we can begin pull to refreshing, otherwise we can't pull it
 	 */
-	protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset){
+	protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset, @EXTRA_STATE int extraState){
 		return  true;
 	}
+
+//	/**
+//	 * editor by Hale Yang
+//	 * @return if it return true, then the gesture of move will be intercept
+//	 */
+//	protected boolean onExtraInterceptMove(){
+//		return false;
+//	}
 
 
 	/**
