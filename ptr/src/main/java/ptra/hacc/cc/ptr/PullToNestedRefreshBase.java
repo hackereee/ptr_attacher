@@ -6,7 +6,10 @@ import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingChildHelper;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 /**
@@ -18,6 +21,9 @@ import android.view.ViewGroup;
 public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefreshBase<E> implements NestedScrollingChild {
 
     private NestedScrollingChildHelper mScrollingChildHelper;
+    private int mMaxVelocity;
+    private int mMinVelocity;
+    private VelocityTracker mVelcityTracker;
 
     public PullToNestedRefreshBase(Context context) {
         super(context);
@@ -51,6 +57,9 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
 
 
     private void init(Context context){
+        ViewConfiguration vc = ViewConfiguration.get(context);
+        mMaxVelocity = vc.getScaledMaximumFlingVelocity();
+        mMinVelocity = vc.getScaledMinimumFlingVelocity();
         setNestedScrollingEnabled(true);
     }
 
@@ -112,6 +121,7 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
         return mScrollingChildHelper;
     }
 
+
     /**
      * edit by Hale Yang
      * @param consumed save the consumed position 0 is x , 1 is y
@@ -119,22 +129,21 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
      * @return true or false
      */
     @Override
-    protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset,@EXTRA_STATE int extraState) {
+    protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset,MotionEvent event) {
         boolean canPull = true;
         int[] realOffset = new int[2];
         int unConsumedX = (int) dx, unConsumedY = (int) dy;
-        if(extraState == EXTRA_START){
-            int axes = getPullToRefreshScrollDirection() == Orientation.VERTICAL ? ViewCompat.SCROLL_AXIS_VERTICAL : ViewCompat.SCROLL_AXIS_HORIZONTAL;
-            startNestedScroll(axes);
-        }else if((getPullToRefreshScrollDirection() == Orientation.VERTICAL && dy < 0)
-                || (getPullToRefreshScrollDirection() == Orientation.HORIZONTAL) && dx < 0){
+        int axes = getPullToRefreshScrollDirection() == Orientation.VERTICAL ? ViewCompat.SCROLL_AXIS_VERTICAL : ViewCompat.SCROLL_AXIS_HORIZONTAL;
+        if(!startNestedScroll(axes)) return false;
+         if((getPullToRefreshScrollDirection() == Orientation.VERTICAL && getScrollY() == 0)
+                || (getPullToRefreshScrollDirection() == Orientation.HORIZONTAL) && getScrollX() == 0){
             if(dispatchNestedPreScroll((int)dx, (int)dy, consumed, offset)){
                 unConsumedX = (int) (dx - consumed[0]);
                 unConsumedY = (int) (dy - consumed[1]);
-                realOffset = offset;
+                realOffset[0] += offset[0];
+                realOffset[1] += offset[1];
                 canPull = false;
-            }
-            if(dispatchNestedScroll(consumed[0], consumed[1], unConsumedX, unConsumedY, offset)){
+            }else if(dispatchNestedScroll(consumed[0], consumed[1], unConsumedX, unConsumedY, offset)){
                 realOffset[0] += offset[0];
                 realOffset[1] += offset[1];
                 canPull = false;
@@ -142,6 +151,22 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
             offset[0] = realOffset[0];
             offset[1] = realOffset[1];
         }
-        return offset[0] <= 0  && offset[1] <= 0;
+        return offset[0] != 0  || offset[1] != 0;
+    }
+
+    @Override
+    protected boolean onExtractUpEvent(MotionEvent event) {
+        if(mVelcityTracker == null) mVelcityTracker = VelocityTracker.obtain();
+        mVelcityTracker.addMovement(event);
+        mVelcityTracker.computeCurrentVelocity(1000, mMaxVelocity);
+        float xVelcity = (getPullToRefreshScrollDirection() == Orientation.HORIZONTAL ? -mVelcityTracker.getXVelocity(event.getPointerId(0)) : 0);
+        float yVelcity =  (getPullToRefreshScrollDirection() == Orientation.VERTICAL ? -mVelcityTracker.getXVelocity(event.getPointerId(0)) : 0);
+        if(Math.abs(xVelcity) < mMinVelocity || Math.abs(yVelcity) < mMinVelocity) return true;
+        if(!dispatchNestedPreFling(xVelcity, yVelcity)){
+            dispatchNestedFling(xVelcity, yVelcity, true);
+        }
+        stopNestedScroll();
+        mVelcityTracker.clear();
+        return true;
     }
 }

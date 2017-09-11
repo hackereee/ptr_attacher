@@ -53,9 +53,9 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	protected static final int EXTRA_BEFORE_PULL = 0x2;
 	protected static final int EXTRA_AFTER_PULL = 0x3;
 
-	@IntDef({EXTRA_START, EXTRA_BEFORE_PULL, EXTRA_AFTER_PULL})
-	@Retention(RetentionPolicy.SOURCE)
-	protected  @interface EXTRA_STATE{}
+//	@IntDef({EXTRA_START, EXTRA_BEFORE_PULL, EXTRA_AFTER_PULL})
+//	@Retention(RetentionPolicy.SOURCE)
+//	protected  @interface EXTRA_STATE{}
 
 
 	// ===========================================================
@@ -294,15 +294,15 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 
 					if (absDiff > mTouchSlop && (!mFilterTouchEvents || absDiff > Math.abs(oppositeDiff))) {
 						if (mMode.showHeaderLoadingLayout() && diff >= 1f && isReadyForPullStart()) {
-							mLastMotionY = y;
-							mLastMotionX = x;
+							mInitialMotionY = mLastMotionY = y;
+							mInitialMotionX = mLastMotionX = x;
 							mIsBeingDragged = true;
 							if (mMode == Mode.BOTH) {
 								mCurrentMode = Mode.PULL_FROM_START;
 							}
 						} else if (mMode.showFooterLoadingLayout() && diff <= -1f && isReadyForPullEnd()) {
-							mLastMotionY = y;
-							mLastMotionX = x;
+							mInitialMotionY = mLastMotionY = y;
+							mInitialMotionX = mLastMotionX = x;
 							mIsBeingDragged = true;
 							if (mMode == Mode.BOTH) {
 								mCurrentMode = Mode.PULL_FROM_END;
@@ -348,17 +348,19 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 			return false;
 		}
 
+		MotionEvent etev = MotionEvent.obtain(event);
+
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_MOVE: {
 				if (mIsBeingDragged) {
-					onExtractMoveEvent(0.0f, 0.0f, new int[2], new int[2], EXTRA_START);
+//					onExtractMoveEvent(0.0f, 0.0f, new int[2], new int[2], event);
 					int[] consumed = new int[2];
 					int[] offset = new int[2];
 					float dx =  mLastMotionX - event.getX();
 					float dy =  mLastMotionY - event.getY();
-					if(!onExtractMoveEvent(dx, dy, consumed, offset, EXTRA_BEFORE_PULL)){
-						event.offsetLocation(offset[0], offset[1]);
-						return false;
+					if(onExtractMoveEvent(dx, dy, consumed, offset, etev)){
+						etev.offsetLocation(-offset[0], -offset[1]);
+						return  true;
 					}
 					mLastMotionY = event.getY();
 					mLastMotionX = event.getX();
@@ -385,7 +387,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 			case MotionEvent.ACTION_UP: {
 				if (mIsBeingDragged) {
 					mIsBeingDragged = false;
-
+					onExtractUpEvent(etev);
 					if (mState == State.RELEASE_TO_REFRESH
 							&& (null != mOnRefreshListener || null != mOnRefreshListener2)) {
 						setState(State.REFRESHING, true);
@@ -404,6 +406,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 
 					return true;
 				}
+				etev.recycle();
 				break;
 			}
 		}
@@ -767,8 +770,12 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	 * @param offset save the offset
 	 * @return if the return is true that we can begin pull to refreshing, otherwise we can't pull it
 	 */
-	protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset, @EXTRA_STATE int extraState){
-		return  true;
+	protected boolean onExtractMoveEvent(float dx, float dy, int[] consumed, int[] offset, MotionEvent event){
+		return  false;
+	}
+
+	protected boolean onExtractUpEvent(MotionEvent event){
+		return true;
 	}
 
 //	/**
