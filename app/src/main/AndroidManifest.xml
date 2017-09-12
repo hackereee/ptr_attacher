@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 
-    package="ptra.hacc.cc.pulltorefreshattacher">
+    package="ptra.hacc.cc.demo">
 
     <application
         android:allowBackup="true"

@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">PullToRefreshAttacher</string>
-    <string name="content_nested_scroll">click it to clear all datas</string>
+    <string name="content_nested_scroll">Click it to clear all datas</string>
     <string name="content_empty">the content is empty!</string>
 </resources>

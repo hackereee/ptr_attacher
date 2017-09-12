@@ -1,4 +1,4 @@
-package ptra.hacc.cc.pulltorefreshattacher;
+package ptra.hacc.cc.demo;
 
 import org.junit.Test;
 

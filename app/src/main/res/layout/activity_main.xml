@@ -22,10 +22,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/testButton"
+            android:textAllCaps="false"
             android:text="@string/content_nested_scroll"/>
     </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
-<ptra.hacc.cc.pulltorefreshattacher.PulltoRefreshURecyclerView
+<ptra.hacc.cc.demo.PulltoRefreshURecyclerView
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     design:layout_behavior="@string/appbar_scrolling_view_behavior"
