@@ -122,6 +122,15 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
     }
 
 
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent event) {
+        if(mVelcityTracker == null) mVelcityTracker = VelocityTracker.obtain();
+        mVelcityTracker.addMovement(event);
+        if(event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) mVelcityTracker.clear();
+
+        return super.onInterceptTouchEvent(event);
+    }
+
     /**
      * edit by Hale Yang
      * @param consumed save the consumed position 0 is x , 1 is y
@@ -160,8 +169,8 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
         mVelcityTracker.addMovement(event);
         mVelcityTracker.computeCurrentVelocity(1000, mMaxVelocity);
         float xVelcity = (getPullToRefreshScrollDirection() == Orientation.HORIZONTAL ? -mVelcityTracker.getXVelocity(event.getPointerId(0)) : 0);
-        float yVelcity =  (getPullToRefreshScrollDirection() == Orientation.VERTICAL ? -mVelcityTracker.getXVelocity(event.getPointerId(0)) : 0);
-        if(Math.abs(xVelcity) < mMinVelocity || Math.abs(yVelcity) < mMinVelocity) return true;
+        float yVelcity =  (getPullToRefreshScrollDirection() == Orientation.VERTICAL ? -mVelcityTracker.getYVelocity(event.getPointerId(0)) : 0);
+        if(Math.abs(xVelcity) < mMinVelocity && Math.abs(yVelcity) < mMinVelocity) return true;
         if(!dispatchNestedPreFling(xVelcity, yVelcity)){
             dispatchNestedFling(xVelcity, yVelcity, true);
         }

@@ -246,7 +246,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	}
 
 	@Override
-	public final boolean onInterceptTouchEvent(MotionEvent event) {
+	public  boolean onInterceptTouchEvent(MotionEvent event) {
 		boolean extraIntercept = false;
 
 		if (!isPullToRefreshEnabled()) {
