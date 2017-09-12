@@ -9,11 +9,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import junit.framework.Test;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -29,7 +27,7 @@ import ptra.hacc.cc.ptr.PullToRefreshBase;
  *
  */
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     ExecutorService mTestRequest = Executors.newCachedThreadPool();
     PulltoRefreshURecyclerView ptr;
@@ -39,19 +37,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        findViewById(R.id.testButton).setOnClickListener(this);
         ptr = (PulltoRefreshURecyclerView) findViewById(R.id.ptr);
         ptr.setMode(PullToRefreshBase.Mode.BOTH);
-        ptr.getLoadingLayoutProxy().setPullLabel("我们试试是不是改变了");
         ptr.setOnRefreshListener(new PullToRefreshBase.OnRefreshListener2<RecyclerView>() {
             @Override
             public void onPullDownToRefresh(PullToRefreshBase<RecyclerView> refreshView) {
+                ptr.setNoMore(false);
                 mTestRequest.execute(new Runnable() {
                     @Override
                     public void run() {
                         List<TestEntity> entities = new ArrayList<TestEntity>();
                         for(int i = 0; i <= 5; i++){
                             TestEntity entity = new TestEntity();
-                            entity.setContent("this is the " + i + " content");
+                            entity.setContent("this is the " + i + " item content");
                             entities.add(entity);
                         }
                         try {
@@ -72,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                         List<TestEntity> entities = new ArrayList<>();
                         for(int i = 0; i <= 5; i++){
                             TestEntity entity = new TestEntity();
-                            entity.setContent("this is the " + i + " content");
+                            entity.setContent("this is the " + (mAdapter.getItemCount() + i) + " item content");
                             entities.add(entity);
                         }
                         try {
@@ -81,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
 //                            e.printStackTrace();
                         }
                         mHandler.obtainMessage(MineHanlder.ADDMORE_LIST, entities).sendToTarget();
+                        if(mAdapter.getItemCount() > 20){
+                            mHandler.sendEmptyMessage(MineHanlder.NOMORE_DATA);
+                        }
                     }
                 });
 
@@ -88,6 +90,22 @@ public class MainActivity extends AppCompatActivity {
         });
         mAdapter = new MineAdapter();
         ptr.setAdapter(mAdapter);
+        ViewGroup contentView = (ViewGroup) findViewById(android.R.id.content);
+        ptr.setEmptyView(getLayoutInflater().inflate(R.layout.view_main_empty, contentView, false));
+//        ptr.setRefreshing();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.testButton:
+                mAdapter.clear();
+//                Toast.makeText(MainActivity.this, "this is a appbarlayout behavior", Toast.LENGTH_SHORT).show();
+                break;
+//            case R.id.floatButton:
+//                Toast.makeText(MainActivity.this, "this is a bootomSheet behavior", Toast.LENGTH_SHORT).show();
+//                break;
+        }
     }
 
     private class MineAdapter extends RecyclerView.Adapter<MineViewHolder>{
@@ -97,12 +115,20 @@ public class MainActivity extends AppCompatActivity {
 
         private void refresh(@NonNull  List<TestEntity> entities){
             this.entities.clear();
-            addMore(entities);
+            this.entities.addAll(entities);
+            notifyDataSetChanged();
+        }
+
+        private void clear(){
+            if(entities.isEmpty()) return;
+            this.entities.clear();
+            notifyDataSetChanged();
+            Toast.makeText(getApplicationContext(), "all content is clear!", Toast.LENGTH_SHORT).show();
         }
 
         private void addMore(@NonNull List<TestEntity> entities){
+            notifyItemRangeInserted(this.entities.size(), entities.size());
             this.entities.addAll(entities);
-            notifyDataSetChanged();
         }
 
         @Override
@@ -135,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
     private static class MineHanlder extends Handler{
         private static final int REFRESH_LIST = 1;
         private static final int ADDMORE_LIST = 2;
+        private static final int NOMORE_DATA = 3;
         private WeakReference<MainActivity> a;
         private MineHanlder(MainActivity activity){
             this.a  = new WeakReference<MainActivity>(activity);
@@ -152,6 +179,9 @@ public class MainActivity extends AppCompatActivity {
                 case ADDMORE_LIST:
                     a.get().mAdapter.addMore((List<TestEntity>) msg.obj);
                     a.get().ptr.onRefreshComplete();
+                    break;
+                case NOMORE_DATA:
+                    a.get().ptr.setNoMore();
                     break;
             }
         }

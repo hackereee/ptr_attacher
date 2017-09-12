@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PullToRefreshAttacher</string>
-    <string name="content_nested_scroll">this is an nested scroll view</string>
+    <string name="content_nested_scroll">click it to clear all datas</string>
+    <string name="content_empty">the content is empty!</string>
 </resources>

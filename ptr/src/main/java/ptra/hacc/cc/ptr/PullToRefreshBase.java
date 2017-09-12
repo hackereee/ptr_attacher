@@ -460,8 +460,12 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 		getRefreshableView().setLongClickable(longClickable);
 	}
 
+	/**
+	 * edit by Hale Yang
+	 * @param pullWay {@link PullWay}
+	 */
 	public final void setPullWay(PullWay pullWay){
-
+		this.mPullWay = pullWay;
     }
 
 	@Override

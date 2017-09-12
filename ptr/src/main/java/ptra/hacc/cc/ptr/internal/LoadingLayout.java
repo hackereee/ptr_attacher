@@ -303,6 +303,10 @@ public abstract class LoadingLayout extends FrameLayout implements ILoadingLayou
 		mPullLabel = pullLabel;
 	}
 
+	public CharSequence getPullLabel(){
+		return this.mPullLabel;
+	}
+
 	public void setRefreshingLabel(CharSequence refreshingLabel) {
 		mRefreshingLabel = refreshingLabel;
 	}

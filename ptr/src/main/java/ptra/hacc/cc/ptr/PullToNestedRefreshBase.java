@@ -147,15 +147,11 @@ public abstract class PullToNestedRefreshBase<E extends View> extends PullToRefr
          if((getPullToRefreshScrollDirection() == Orientation.VERTICAL && getScrollY() == 0)
                 || (getPullToRefreshScrollDirection() == Orientation.HORIZONTAL) && getScrollX() == 0){
             if(dispatchNestedPreScroll((int)dx, (int)dy, consumed, offset)){
-                unConsumedX = (int) (dx - consumed[0]);
-                unConsumedY = (int) (dy - consumed[1]);
                 realOffset[0] += offset[0];
                 realOffset[1] += offset[1];
-                canPull = false;
             }else if(dispatchNestedScroll(consumed[0], consumed[1], unConsumedX, unConsumedY, offset)){
                 realOffset[0] += offset[0];
                 realOffset[1] += offset[1];
-                canPull = false;
             }
             offset[0] = realOffset[0];
             offset[1] = realOffset[1];

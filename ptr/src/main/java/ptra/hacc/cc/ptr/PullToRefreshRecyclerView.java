@@ -24,23 +24,37 @@ public class PullToRefreshRecyclerView extends PullToNestedRefreshBase<RecyclerV
     private static final int LAYOUT_GRID = 0x1;
     private static final int LAYOUT_STAGGERED_GRID = 0x2;
 
+    private boolean mNoMore = false;
+
     private Orientation mOrientation = Orientation.VERTICAL;
+
+    private CharSequence mPullLabel, mNoMoreLabel;
 
     public PullToRefreshRecyclerView(Context context) {
         super(context);
+        init(context);
     }
 
     public PullToRefreshRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init(context);
     }
 
     public PullToRefreshRecyclerView(Context context, Mode mode) {
         super(context, mode);
+        init(context);
     }
 
     public PullToRefreshRecyclerView(Context context, Mode mode, AnimationStyle animStyle) {
         super(context, mode, animStyle);
+        init(context);
     }
+
+    private void init(Context context){
+        this.mPullLabel = getFooterLayout().getPullLabel();
+        this.mNoMoreLabel = getResources().getString(R.string.no_mor_data);
+    }
+
 
     public void setLayoutManager(RecyclerView.LayoutManager layoutManager){
         getRefreshableView().setLayoutManager(layoutManager);
@@ -55,7 +69,20 @@ public class PullToRefreshRecyclerView extends PullToNestedRefreshBase<RecyclerV
     }
 
     public void setNoMore(boolean noMore){
+        this.mNoMore = noMore;
+        if(noMore){
+            mPullLabel = getFooterLayout().getPullLabel();
+            getFooterLayout().setPullLabel(mNoMoreLabel);
+        }else{
+            getFooterLayout().setPullLabel(mPullLabel);
+        }
         setPullWay(noMore ? PullWay.WUP_PULL_ONLY : PullWay.WBOTH_PULL_ALLOW);
+    }
+
+    @Override
+    protected void onRefreshing(boolean doScroll) {
+        if(mNoMore) setNoMore(false);
+        super.onRefreshing(doScroll);
     }
 
     @Override
