@@ -20,6 +20,12 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
     private NestedScrollingChildHelper mNestedScrollingChildHelper;
     private NestedScrollingParentHelper mNestedScorllingParentHelper;
 
+    private int[] mParentConmused = new int[2];
+    private int[] mParentOffset = new int[2];
+    private int mTotalCOnmused;
+
+
+
     public PullNeoNestedToRefresh(Context context) {
         super(context);
     }
