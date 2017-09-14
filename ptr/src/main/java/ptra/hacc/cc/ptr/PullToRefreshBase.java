@@ -68,7 +68,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 
 	static final String LOG_TAG = "PullToRefresh";
 
-	static final float FRICTION = 2.0f;
+	protected static final float FRICTION = 2.0f;
 
 	public static final int SMOOTH_SCROLL_DURATION_MS = 200;
 	public static final int SMOOTH_SCROLL_LONG_DURATION_MS = 325;
@@ -94,7 +94,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
     private PullWay mPullWay = PullWay.getDefault();
 	private Mode mMode = Mode.getDefault();
 
-	private Mode mCurrentMode;
+	Mode mCurrentMode;
 	T mRefreshableView;
 	private FrameLayout mRefreshableViewWrapper;
 
@@ -110,8 +110,8 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 	private LoadingLayout mHeaderLayout;
 	private LoadingLayout mFooterLayout;
 
-	private OnRefreshListener<T> mOnRefreshListener;
-	private OnRefreshListener2<T> mOnRefreshListener2;
+	OnRefreshListener<T> mOnRefreshListener;
+	OnRefreshListener2<T> mOnRefreshListener2;
 	private OnPullEventListener<T> mOnPullEventListener;
 
 	private SmoothScrollRunnable mCurrentSmoothScrollRunnable;
@@ -1268,19 +1268,29 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 		}
 
 		setHeaderScroll(newScrollValue);
+		onPullChange(newScrollValue, itemDimension);
+	}
 
+	/**
+	 * editor by Hale Yang
+	 * when the pull scroll changed, we will change the state with the scroll length and we
+	 * will judge how do the state change
+	 * @param newScrollValue new scroll Value
+	 * @param itemDimension the dimension of header or foot
+	 */
+	protected void onPullChange(int newScrollValue, int itemDimension){
 		if (newScrollValue != 0 && !isRefreshing()) {
 			float scale = Math.abs(newScrollValue) / (float) itemDimension;
-            boolean allowRelease = mPullWay == PullWay.WBOTH_PULL_ALLOW;
+			boolean allowRelease = mPullWay == PullWay.WBOTH_PULL_ALLOW;
 			switch (mCurrentMode) {
 				case PULL_FROM_END:
 					mFooterLayout.onPull(scale);
-                    if(!allowRelease)
-                    allowRelease = !(mPullWay == PullWay.WUP_PULL_ONLY || mPullWay == PullWay.WBOTH_PULL_ONLY);
+					if(!allowRelease)
+						allowRelease = !(mPullWay == PullWay.WUP_PULL_ONLY || mPullWay == PullWay.WBOTH_PULL_ONLY);
 					break;
 				case PULL_FROM_START:
-                    if(!allowRelease)
-                        allowRelease = !(mPullWay == PullWay.WDOWN_PULL_ONLY || mPullWay == PullWay.WBOTH_PULL_ONLY);
+					if(!allowRelease)
+						allowRelease = !(mPullWay == PullWay.WDOWN_PULL_ONLY || mPullWay == PullWay.WBOTH_PULL_ONLY);
 				default:
 					mHeaderLayout.onPull(scale);
 					break;
@@ -1293,6 +1303,7 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 			}
 		}
 	}
+
 
 	private LayoutParams getLoadingLayoutLayoutParams() {
 		switch (getPullToRefreshScrollDirection()) {

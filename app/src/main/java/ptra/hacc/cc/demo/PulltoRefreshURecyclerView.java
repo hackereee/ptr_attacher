@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 
+import ptra.hacc.cc.ptr.PullToRefreshNeoRecyclerView;
 import ptra.hacc.cc.ptr.PullToRefreshRecyclerView;
 import ptra.hacc.cc.ptr.refreshview.URecyclerView;
 
@@ -15,7 +16,7 @@ import ptra.hacc.cc.ptr.refreshview.URecyclerView;
  * a demo for pull
  */
 
-public class PulltoRefreshURecyclerView extends PullToRefreshRecyclerView {
+public class PulltoRefreshURecyclerView extends PullToRefreshNeoRecyclerView {
     public PulltoRefreshURecyclerView(Context context) {
         super(context);
     }

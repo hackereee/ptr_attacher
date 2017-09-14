@@ -20,40 +20,52 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
     private NestedScrollingChildHelper mNestedScrollingChildHelper;
     private NestedScrollingParentHelper mNestedScorllingParentHelper;
 
+    /*
+     * 获取滚动后所消耗的距离
+     */
     private int[] mParentConmused = new int[2];
-    private int[] mParentOffset = new int[2];
-    private int mTotalCOnmused;
+    /*
+     * 获取滚动消耗的偏移量
+     */
+    private int[] mParentOffsetWindow = new int[2];
+    private int mTotalUnConmused;
 
 
 
     public PullNeoNestedToRefresh(Context context) {
         super(context);
+        init(context);
     }
 
     public PullNeoNestedToRefresh(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init(context);
     }
 
     public PullNeoNestedToRefresh(Context context, Mode mode) {
         super(context, mode);
+        init(context);
     }
 
     public PullNeoNestedToRefresh(Context context, Mode mode, AnimationStyle animStyle) {
         super(context, mode, animStyle);
+        init(context);
     }
 
+    private void init(Context context){
+        setNestedScrollingEnabled(true);
+    }
+
+
+    /*
+    * 这个模式下，我们默认不拦截处理下拉手势，通过nested scroll 来处理下拉拖动和释放，如果这里重写了，会和nested scroll中的处理发生冲突，
+    * 建议在没有嵌套滚动视图里再重写此方法
+    * */
     @Override
-    protected boolean isReadyForPullEnd() {
+    protected  boolean isReadyForPullStart() {
         return false;
     }
 
-    @Override
-    protected boolean isReadyForPullStart() {
-        return false;
-    }
-
-    protected abstract boolean isExtraReadyForPullStart();
-    protected abstract boolean isExtraReadyForPullEnd();
 
     @Override
     public boolean onStartNestedScroll(View child, View target, int nestedScrollAxes) {
@@ -62,20 +74,48 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
 
     @Override
     public void onNestedScrollAccepted(View child, View target, int axes) {
-        mNestedScorllingParentHelper.onNestedScrollAccepted(child, target, axes);
+        getNestedScrollingParentHelper().onNestedScrollAccepted(child, target, axes);
         startNestedScroll(axes);
     }
 
     @Override
     public void onStopNestedScroll(View child) {
+        if(getState() == State.RELEASE_TO_REFRESH && (mOnRefreshListener != null || mOnRefreshListener2 != null)){
+            setState(State.REFRESHING, true);
+        }else {
+            setState(State.RESET);
+        }
+        mTotalUnConmused = 0;
         stopNestedScroll();
-        mNestedScorllingParentHelper.onStopNestedScroll(child);
+        getNestedScrollingParentHelper().onStopNestedScroll(child);
     }
 
     @Override
     public void onNestedScroll(View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
-        int offset[] = new int[2];
-        dispatchNestedScroll(dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, offset);
+
+        dispatchNestedScroll(dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, mParentOffsetWindow);
+        if(getMode().showHeaderLoadingLayout()) {
+            mCurrentMode = Mode.PULL_FROM_START;
+            switch (getPullToRefreshScrollDirection()) {
+                case VERTICAL:
+                    /*
+                    * 滚动结束剩余消费
+                    * */
+                    int dy = dyUnconsumed + mParentOffsetWindow[1];
+                    if (dy < 0) {
+                        mTotalUnConmused += Math.abs(dy);
+                        pullWithNestedOver(mTotalUnConmused);
+                    }
+                    break;
+                case HORIZONTAL:
+                    int dx = dxUnconsumed + mParentOffsetWindow[0];
+                    if(dx < 0){
+                        mTotalUnConmused += Math.abs(dx);
+                        pullWithNestedOver(mTotalUnConmused);
+                    }
+                    break;
+            }
+        }
     }
 
     /**
@@ -85,8 +125,43 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
      */
     @Override
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
-        int offset[] = new int[2];
-        dispatchNestedPreScroll(dx, dy, consumed, offset);
+//        int offset[] = new int[2];
+        /*
+         *向上移动
+         *并且嵌套滚动已经向下执行过
+         */
+        if(dy > 0 /*&& mTotalUnConmused > 0*/){
+            mCurrentMode = Mode.PULL_FROM_START;
+            switch (getPullToRefreshScrollDirection()){
+                case VERTICAL:
+                    if(dy > mTotalUnConmused) {
+                        consumed[1] = mTotalUnConmused;
+                        mTotalUnConmused = 0;
+                    }else {
+                        consumed[1] = dy;
+                        mTotalUnConmused -= dy;
+                    }
+                    int[] parentConsumedY = mParentConmused;
+                    dispatchNestedPreScroll(dx, dy - consumed[1], parentConsumedY, null);
+                    consumed[0] += parentConsumedY[0];
+                    consumed[1] += parentConsumedY[1];
+                    break;
+                case HORIZONTAL:
+                    if(dx > mTotalUnConmused){
+                        consumed[0] = mTotalUnConmused;
+                        mTotalUnConmused = 0;
+                    }else {
+                        consumed[0] = dx;
+                        mTotalUnConmused -= dx;
+                    }
+                    int parentConsumedX[] = mParentConmused;
+                    dispatchNestedPreScroll(dx - consumed[0], dy, parentConsumedX, null);
+                    consumed[0] += parentConsumedX[0];
+                    consumed[1] += parentConsumedX[1];
+                    break;
+            }
+            pullWithNestedOver(mTotalUnConmused);
+        }
     }
 
     /**
@@ -105,29 +180,41 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
         return dispatchNestedPreFling(velocityX, velocityY);
     }
 
+    /**
+     *嵌套滚动中给下拉刷新消费
+     */
+    private void pullWithNestedOver(int scrollConsumed){
+            mCurrentMode = Mode.PULL_FROM_START;
+            int headerDimension = getHeaderSize();
+            int neoScrollValue = (int) -(scrollConsumed / FRICTION);
+            setHeaderScroll(neoScrollValue);
+            onPullChange(scrollConsumed, headerDimension);
+    }
+
+
     @Override
     public int getNestedScrollAxes() {
-        return mNestedScorllingParentHelper.getNestedScrollAxes();
+        return getNestedScrollingParentHelper().getNestedScrollAxes();
     }
 
     @Override
     public void setNestedScrollingEnabled(boolean enabled) {
-        super.setNestedScrollingEnabled(enabled);
+        getNestedScrollingChildHelper().setNestedScrollingEnabled(enabled);
     }
 
     @Override
     public boolean isNestedScrollingEnabled() {
-        return super.isNestedScrollingEnabled();
+        return getNestedScrollingChildHelper().isNestedScrollingEnabled();
     }
 
     @Override
     public boolean startNestedScroll(int axes) {
-        return super.startNestedScroll(axes);
+        return getNestedScrollingChildHelper().startNestedScroll(axes);
     }
 
     @Override
     public void stopNestedScroll() {
-        super.stopNestedScroll();
+        getNestedScrollingChildHelper().stopNestedScroll();
     }
 
     @Override
