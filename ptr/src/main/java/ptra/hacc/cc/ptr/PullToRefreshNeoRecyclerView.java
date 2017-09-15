@@ -93,44 +93,44 @@ public class PullToRefreshNeoRecyclerView extends PullNeoNestedToRefresh<Recycle
         return mOrientation;
     }
 
-    @Override
-    protected boolean isReadyForPullEnd() {
-        boolean readyForPull = false;
-        RecyclerView recyclerView = getRefreshableView();
-        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-        if(layoutManager != null) {
-            if (layoutManager instanceof LinearLayoutManager) {
-                LinearLayoutManager lm = (LinearLayoutManager) layoutManager;
-                int position = lm.findLastVisibleItemPosition();
-                if (position == lm.getItemCount() - 1) {
-                    View child = lm.findViewByPosition(position);
-                    if (child != null && child.getBottom() <= recyclerView.getBottom()) {
-                        readyForPull = true;
-                    }
-                }else if(position < 0){
-                    readyForPull = true;
-                }
-            } else if (layoutManager instanceof StaggeredGridLayoutManager) {
-                StaggeredGridLayoutManager sm = (StaggeredGridLayoutManager) layoutManager;
-                int[] positions = sm.findFirstCompletelyVisibleItemPositions(null);
-                int spanCount = sm.getSpanCount();
-                if(positions.length > 0 && positions[spanCount - 1] == sm.getItemCount() - 1){
-                    for(int i = 0; i < spanCount; i++){
-                        if(positions[i] < 0){
-                            readyForPull = true;
-                            break;
-                        }
-                        View child = sm.findViewByPosition(positions[i]);
-                        if(child.getBottom() <= recyclerView.getBottom()){
-                            readyForPull = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return  readyForPull;
-    }
+//    @Override
+//    protected boolean isReadyForPullEnd() {
+//        boolean readyForPull = false;
+//        RecyclerView recyclerView = getRefreshableView();
+//        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+//        if(layoutManager != null) {
+//            if (layoutManager instanceof LinearLayoutManager) {
+//                LinearLayoutManager lm = (LinearLayoutManager) layoutManager;
+//                int position = lm.findLastVisibleItemPosition();
+//                if (position == lm.getItemCount() - 1) {
+//                    View child = lm.findViewByPosition(position);
+//                    if (child != null && child.getBottom() <= recyclerView.getBottom()) {
+//                        readyForPull = true;
+//                    }
+//                }else if(position < 0){
+//                    readyForPull = true;
+//                }
+//            } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+//                StaggeredGridLayoutManager sm = (StaggeredGridLayoutManager) layoutManager;
+//                int[] positions = sm.findFirstCompletelyVisibleItemPositions(null);
+//                int spanCount = sm.getSpanCount();
+//                if(positions.length > 0 && positions[spanCount - 1] == sm.getItemCount() - 1){
+//                    for(int i = 0; i < spanCount; i++){
+//                        if(positions[i] < 0){
+//                            readyForPull = true;
+//                            break;
+//                        }
+//                        View child = sm.findViewByPosition(positions[i]);
+//                        if(child.getBottom() <= recyclerView.getBottom()){
+//                            readyForPull = true;
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        return  readyForPull;
+//    }
 
 //    @Override
 //    protected boolean isReadyForPullStart() {
