@@ -61,27 +61,27 @@ public class URecyclerView extends RecyclerView implements IExtraRefresh{
     private AdapterDataObserver mNativeDataObserver = new AdapterDataObserver() {
         @Override
         public void onChanged() {
-            mWrapAdapter.notifyDataSetChanged();
+            mWrapAdapter.notifyWrapAdapterChanged();
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            mWrapAdapter.notifyItemRangeChanged(positionStart, itemCount);
+            mWrapAdapter.notifyWrapAdapterItemRangeChanged(positionStart, itemCount);
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
-            mWrapAdapter.notifyItemRangeChanged(positionStart, itemCount, payload);
+            mWrapAdapter.notifyWrapAdapterItemRangeChanged(positionStart, itemCount, payload);
         }
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
-            mWrapAdapter.notifyItemRangeInserted(positionStart, itemCount);
+            mWrapAdapter.notifyWrapAdapterItemInsert(positionStart, itemCount);
         }
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-            mWrapAdapter.notifyItemRangeRemoved(positionStart, itemCount);
+            mWrapAdapter.notifyWrapAdapterItemRemoved(positionStart, itemCount);
         }
 
         @Override
@@ -93,6 +93,7 @@ public class URecyclerView extends RecyclerView implements IExtraRefresh{
     @Override
     public void setEmptyView(@Nullable  View v) {
         this.mEmtpyView = v;
+        mWrapAdapter.setEmptyView();
     }
 
 
@@ -118,10 +119,54 @@ public class URecyclerView extends RecyclerView implements IExtraRefresh{
             this.mNativeAdapter = nativeAdapter;
         }
 
+        private void setEmptyView(){
+            if(mEmtpyView != null && mNativeAdapter.getItemCount() == 0) mNativeItemEmpty = true;
+        }
+
+
+        private void notifyWrapAdapterChanged(){
+            if(mNativeAdapter.getItemCount() == 0 && hasEmptyView()) mNativeItemEmpty = true;
+            else mNativeItemEmpty = false;
+            notifyDataSetChanged();
+        }
+
+        private void notifyWrapAdapterItemRangeChanged(int startPosition, int itemCount){
+//            if(mNativeAdapter.getItemCount() == 0) mNativeItemEmpty = true;
+//            notifyItemRangeChanged(startPosition, itemCount);
+        }
+
+        private void notifyWrapAdapterItemRangeChanged(int startPosition, int itemCount, Object payLoads){
+//            if(mNativeAdapter.getItemCount() == 0) mNativeItemEmpty = true;
+//            notifyItemRangeChanged(startPosition, itemCount, payLoads);
+        }
+
+        /**
+         * if this function be called the mean is that the new item will be insert in our adapter
+         * @param startPosition the start position
+         * @param itemCount the count of the will be insert item
+         */
+        private void notifyWrapAdapterItemInsert(int startPosition, int itemCount){
+            if(itemCount > 0 && mNativeItemEmpty) {
+                mNativeItemEmpty = false;
+                notifyItemRemoved(0);
+            }
+            notifyItemRangeInserted(startPosition, itemCount);
+        }
+
+        private void notifyWrapAdapterItemRemoved(int startPosition, int itemCount){
+            notifyItemRangeRemoved(startPosition, itemCount);
+            if(mNativeAdapter.getItemCount() == 0 && hasEmptyView()) {
+                mNativeItemEmpty = true;
+                notifyItemRangeInserted(0, 1);
+            }
+        }
+
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             if(mNativeItemEmpty){
+                if(viewType == EMPTY_TYPE)
                 return new WrapViewHolder(mEmtpyView);
+                else return  new WrapViewHolder(null);
             }else{
                 return mNativeAdapter.onCreateViewHolder(parent, viewType);
             }
@@ -151,6 +196,10 @@ public class URecyclerView extends RecyclerView implements IExtraRefresh{
                 return super.getItemId(position);
             }
             return super.getItemId(position);
+        }
+
+        private boolean hasEmptyView(){
+            return mEmtpyView != null;
         }
 
         @SuppressWarnings("unchecked")
@@ -210,17 +259,16 @@ public class URecyclerView extends RecyclerView implements IExtraRefresh{
 
         @Override
         public int getItemCount() {
-            int nativeCount = mNativeAdapter.getItemCount();
-            mNativeItemEmpty = nativeCount == 0;
             int wrapCount = mEmtpyView != null ? WRAP_ITEM_COUNT : 0;
-            return mNativeItemEmpty ? wrapCount : nativeCount;
+            return mNativeItemEmpty ? wrapCount : mNativeAdapter.getItemCount();
         }
 
         @Override
         public int getItemViewType(int position) {
             int type;
             if(mNativeItemEmpty){
-                type = EMPTY_TYPE;
+                if(position == 0) type = EMPTY_TYPE;
+                else type = EMPTY_TYPE;
             }else{
                 type = mNativeAdapter.getItemViewType(position);
             }

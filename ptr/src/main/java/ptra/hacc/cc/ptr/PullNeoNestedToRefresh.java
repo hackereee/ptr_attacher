@@ -71,6 +71,22 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
         return false;
     }
 
+    /**
+     *
+     * @return if return false, you can't drag down to refresh
+     */
+    protected boolean isReadyForNestedScrollPullStart(){
+        return true;
+    }
+
+    /**
+     *
+     * @return if return false, you can't drag up to refresh
+     */
+    protected boolean isReadyForNestedScrollPullEnd(){
+        return true;
+    }
+
     @Override
     public boolean onStartNestedScroll(View child, View target, int nestedScrollAxes) {
         return isEnabled() && !isRefreshing();
@@ -98,9 +114,9 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
     public void onNestedScroll(View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
 
         dispatchNestedScroll(dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, mParentOffsetWindow);
-        if((dxUnconsumed < 0 ||dyUnconsumed < 0)
+        if((dxUnconsumed < 0 || dyUnconsumed < 0)
                 && getMode().showHeaderLoadingLayout()
-                && mTotalUnConmused <= 0) {
+                && isReadyForNestedScrollPullStart()) {
             mCurrentMode = Mode.PULL_FROM_START;
             switch (getPullToRefreshScrollDirection()) {
                 case VERTICAL:
@@ -121,18 +137,20 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
                     }
                     break;
             }
-        }else if(getMode().showFooterLoadingLayout()){
+        }else if(getMode().showFooterLoadingLayout() && isReadyForNestedScrollPullEnd()){
             mCurrentMode = Mode.PULL_FROM_END;
             switch (getPullToRefreshScrollDirection()){
                 case VERTICAL:
-                    if(dyConsumed == 0){
-                        mTotalUnConmused += dyUnconsumed;
+                    int dy = dyUnconsumed - mParentOffsetWindow[1];
+                    if(dy > 0) {
+                        mTotalUnConmused += dy;
                         pullWithNestedOver(mTotalUnConmused);
                     }
                     break;
                 case HORIZONTAL:
-                    if(dyConsumed == 0){
-                        mTotalUnConmused += dxUnconsumed;
+                    int dx = dxUnconsumed - mParentOffsetWindow[0];
+                    if(dx > 0){
+                        mTotalUnConmused += dx;
                         pullWithNestedOver(mTotalUnConmused);
                     }
                     break;
@@ -141,19 +159,15 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
         }
     }
 
-    /**
-     * 如果target是一个nested child ,那么它必须遵循{@link NestedScrollingChild}的处理逻辑，
-     * 当调用此方法的时候，说明target想滚动parent所嵌套的那个view ,那么此时如果这个view是已经滚动过的，
-     * 这个动作是需要回滚这个view,那么parent的处理此方法的时候将直接回滚而不等到调用了滚动方法后再去滚动
-     */
+
     @Override
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
 //        int offset[] = new int[2];
         /*
          *向上移动
-         *并且嵌套滚动已经向下执行过
+         *此时嵌套嵌套滚动的视图已经展开
          */
-        if(dy > 0 && mTotalUnConmused <= 0 ){
+        if(dy > 0 && mTotalUnConmused < 0 ){
             switch (getPullToRefreshScrollDirection()){
                 case VERTICAL:
                     if(dy > mTotalUnConmused) {
@@ -185,6 +199,40 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
                     break;
             }
 
+        }else if(dy < 0 && mTotalUnConmused > 0){
+            switch (getPullToRefreshScrollDirection()){
+                case VERTICAL:
+                    if(Math.abs(dy) < mTotalUnConmused){
+                        consumed[1] += dy;
+                        mTotalUnConmused += dy;
+                    }else{
+                        consumed[1] -= mTotalUnConmused;
+                        mTotalUnConmused = 0;
+                    }
+                    pullWithNestedOver(mTotalUnConmused);
+                    int[] parentConsumedY = mParentConmused;
+                    dispatchNestedPreScroll(dx, dy - consumed[1], parentConsumedY, null);
+                    consumed[0] += parentConsumedY[0];
+                    consumed[1] += parentConsumedY[1];
+                    break;
+                case HORIZONTAL:
+                    if(Math.abs(dx) < mTotalUnConmused){
+                        consumed[0] += dx;
+                        mTotalUnConmused -= dx;
+                    }else{
+                        consumed[0] -= mTotalUnConmused;
+                        mTotalUnConmused = 0;
+                    }
+                    pullWithNestedOver(mTotalUnConmused);
+                    int[] parentConsumedX = mParentConmused;
+                    dispatchNestedPreScroll(dx + consumed[0], dy, parentConsumedX, null);
+                    consumed[0] += parentConsumedX[0];
+                    consumed[1] += parentConsumedX[1];
+                    break;
+            }
+
+        }else {
+            dispatchNestedPreScroll(dx, dy, consumed, null);
         }
     }
 
@@ -213,12 +261,12 @@ public abstract class PullNeoNestedToRefresh<E extends View> extends PullToRefre
             int headerDimension = getHeaderSize();
             int neoScrollValue = (int) (scrollConsumed / FRICTION);
             setHeaderScroll(neoScrollValue);
-            onPullChange(scrollConsumed, headerDimension);
+            onPullChange(neoScrollValue, headerDimension);
         }else if(mCurrentMode.getIntValue() == Mode.PULL_FROM_END.getIntValue()){
             int footerDimension = getFooterSize();
             int neoScrollValue = (int) (scrollConsumed / FRICTION);
             setHeaderScroll(neoScrollValue);
-            onPullChange(scrollConsumed, footerDimension);
+            onPullChange(neoScrollValue, footerDimension);
         }
     }
 
