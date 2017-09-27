@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ptr="http://schemas.android.com/apk/res-auto"
+    xmlns:design="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ptra.hacc.cc.ptr.PullToRefershNestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        design:layout_behavior="@string/appbar_scrolling_view_behavior"
+        ptr:ptrShowIndicator="false"
+        ptr:ptrListViewExtrasEnabled="true"
+        ptr:ptrAnimationStyle="flip"
+        android:id="@+id/ptr"/>
+
+</FrameLayout>

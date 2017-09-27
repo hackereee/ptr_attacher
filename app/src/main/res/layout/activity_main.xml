@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:ptr="http://schemas.android.com/apk/res-auto"
     xmlns:design="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,13 +9,11 @@
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-    <android.support.design.widget.CollapsingToolbarLayout
+    <LinearLayout
         android:id="@+id/collapsing_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        design:titleEnabled="false"
-        design:contentScrim="@android:color/transparent"
-        design:statusBarScrim="@android:color/transparent"
+        android:orientation="vertical"
         design:layout_scrollFlags="enterAlways|scroll|exitUntilCollapsed">
         <Button
             android:layout_width="match_parent"
@@ -24,15 +21,25 @@
             android:id="@+id/testButton"
             android:textAllCaps="false"
             android:text="@string/content_nested_scroll"/>
-    </android.support.design.widget.CollapsingToolbarLayout>
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tab"
+            android:layout_width="match_parent"
+            android:layout_height="48dip"
+            design:tabBackground="@android:color/transparent"
+            design:tabGravity="fill"
+            design:tabIndicatorColor="@android:color/holo_red_light"
+            design:tabIndicatorHeight="2dp"
+            design:tabMode="fixed"
+            design:tabSelectedTextColor="@android:color/holo_red_light"
+            design:tabTextColor="@android:color/white"/>
+    </LinearLayout>
     </android.support.design.widget.AppBarLayout>
-<ptra.hacc.cc.demo.PulltoRefreshURecyclerView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    design:layout_behavior="@string/appbar_scrolling_view_behavior"
-    ptr:ptrShowIndicator="false"
-    ptr:ptrListViewExtrasEnabled="true"
-    ptr:ptrAnimationStyle="flip"
-    android:id="@+id/ptr"/>
+    <android.support.v4.view.ViewPager
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        design:layout_behavior="@string/appbar_scrolling_view_behavior"
+        />
+
 
 </android.support.design.widget.CoordinatorLayout>

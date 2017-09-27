@@ -352,8 +352,9 @@ public abstract class PullToRefreshBase<T extends View> extends LinearLayout imp
 
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_MOVE: {
-				if (mIsBeingDragged) {
-//					onExtractMoveEvent(0.0f, 0.0f, new int[2], new int[2], event);
+				//修复bug:如果子view没有拦截事件，则dispatchTouchEvent 将会把事件直接下发到此方法而不触发拦截
+				//update by Hale Yang
+				if (mIsBeingDragged || onInterceptTouchEvent(event)) {
 					int[] consumed = new int[2];
 					int[] offset = new int[2];
 					float dx =  mLastMotionX - event.getX();

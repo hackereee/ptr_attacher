@@ -55,6 +55,19 @@ public class PullToRefreshRecyclerView extends PullToNestedRefreshBase<RecyclerV
         this.mNoMoreLabel = getResources().getString(R.string.no_mor_data);
     }
 
+    @Override
+    protected void onPtrRestoreInstanceState(Bundle savedInstanceState) {
+        mNoMore = savedInstanceState.getBoolean("noMore");
+        mNoMoreLabel = savedInstanceState.getCharSequence("noMoreLabel");
+        mPullLabel = savedInstanceState.getCharSequence("pullLabel");
+    }
+
+    @Override
+    protected void onPtrSaveInstanceState(Bundle saveState) {
+        saveState.putBoolean("noMore", mNoMore);
+        saveState.putCharSequence("noMoreLabel", mNoMoreLabel);
+        saveState.putCharSequence("pullLabel", mPullLabel);
+    }
 
     public void setLayoutManager(RecyclerView.LayoutManager layoutManager){
         getRefreshableView().setLayoutManager(layoutManager);
