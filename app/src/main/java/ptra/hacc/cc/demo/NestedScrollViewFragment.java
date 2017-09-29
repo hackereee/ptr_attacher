@@ -9,6 +9,7 @@ import android.support.v4.widget.NestedScrollView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -35,6 +36,8 @@ public class NestedScrollViewFragment extends BaseFragment {
     ExecutorService mTestRequest = Executors.newCachedThreadPool();
 
     private MineHandler mHandler = new MineHandler(this);
+
+    private boolean mFirst = true;
 
     @Nullable
     @Override
@@ -103,6 +106,8 @@ public class NestedScrollViewFragment extends BaseFragment {
 
             }
         });
+
+        ptr.setRefreshing();
 
     }
 

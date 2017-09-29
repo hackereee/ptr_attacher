@@ -12,6 +12,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +35,8 @@ public class RecyclerViewFragment extends BaseFragment {
     ExecutorService mTestRequest = Executors.newCachedThreadPool();
     PulltoRefreshURecyclerView ptr;
     MineAdapter mAdapter;
+
+    private boolean mFirst = true;
 
     @Nullable
     @Override
@@ -101,6 +104,7 @@ public class RecyclerViewFragment extends BaseFragment {
         mAdapter = new MineAdapter();
         ptr.setAdapter(mAdapter);
         ptr.setEmptyView(getLayoutInflater(null).inflate(R.layout.view_main_empty, (ViewGroup) view, false));
+        ptr.setRefreshing();
     }
 
     @Override

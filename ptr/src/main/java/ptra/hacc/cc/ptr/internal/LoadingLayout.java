@@ -69,6 +69,7 @@ public abstract class LoadingLayout extends FrameLayout implements ILoadingLayou
 	private CharSequence mRefreshingLabel;
 	private CharSequence mReleaseLabel;
 
+
 	public LoadingLayout(Context context, final PullToRefreshBase.Mode mode, final PullToRefreshBase.Orientation scrollDirection, TypedArray attrs) {
 		super(context);
 		mMode = mode;
@@ -200,10 +201,10 @@ public abstract class LoadingLayout extends FrameLayout implements ILoadingLayou
 	public final int getContentSize() {
 		switch (mScrollDirection) {
 			case HORIZONTAL:
-				return mInnerLayout.getWidth();
+				return mInnerLayout.getWidth() == 0 ? mInnerLayout.getMeasuredWidth() : mInnerLayout.getWidth();
 			case VERTICAL:
 			default:
-				return mInnerLayout.getHeight();
+				return mInnerLayout.getHeight() == 0 ? mInnerLayout.getMeasuredHeight() : mInnerLayout.getHeight();
 		}
 	}
 
@@ -335,6 +336,12 @@ public abstract class LoadingLayout extends FrameLayout implements ILoadingLayou
 		}
 	}
 
+	@Override
+	protected void onAttachedToWindow() {
+		initMeasure();
+		super.onAttachedToWindow();
+	}
+
 	/**
 	 * Callbacks for derivative Layouts
 	 */
@@ -399,4 +406,41 @@ public abstract class LoadingLayout extends FrameLayout implements ILoadingLayou
 		}
 	}
 
+	/**
+	 * 考虑到某些时候我们需要在初始化时提前进行setRefershing操作，
+	 * 此时测量可能还未结束，那么{@link #getContentSize()} 将会为0，
+	 * 这里添加这个操作就是为了让它不为0
+	 */
+	private void initMeasure(){
+		ViewGroup.LayoutParams mineLayoutParams = getLayoutParams();
+//		if(mineLayoutParams == null) return;
+		switch (mScrollDirection){
+			case HORIZONTAL:
+				int widthSpec;
+				if(mineLayoutParams.width == ViewGroup.LayoutParams.MATCH_PARENT){
+					widthSpec = MeasureSpec.AT_MOST;
+				}else if(mineLayoutParams.width == ViewGroup.LayoutParams.WRAP_CONTENT){
+					widthSpec = MeasureSpec.UNSPECIFIED;
+				}else{
+					widthSpec = MeasureSpec.EXACTLY;
+				}
+				for(int i = 0; i <  getChildCount(); i++){
+					measureChildWithMargins(getChildAt(i), widthSpec, 0, MeasureSpec.EXACTLY, 0);
+				}
+				break;
+			case VERTICAL:
+				int heightSpec;
+				if(mineLayoutParams.height == ViewGroup.LayoutParams.MATCH_PARENT){
+					heightSpec = MeasureSpec.AT_MOST;
+				}else if(mineLayoutParams.height == ViewGroup.LayoutParams.WRAP_CONTENT){
+					heightSpec = MeasureSpec.UNSPECIFIED;
+				}else{
+					heightSpec = MeasureSpec.EXACTLY;
+				}
+				for(int i = 0; i <  getChildCount(); i++){
+					measureChildWithMargins(getChildAt(i), MeasureSpec.EXACTLY, 0, heightSpec, 0);
+				}
+				break;
+		}
+	}
 }
