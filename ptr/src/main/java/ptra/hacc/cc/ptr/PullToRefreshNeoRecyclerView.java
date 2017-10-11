@@ -2,6 +2,7 @@ package ptra.hacc.cc.ptr;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -51,6 +52,20 @@ public class PullToRefreshNeoRecyclerView extends PullNeoNestedToRefresh<Recycle
     private void init(Context context){
         this.mPullLabel = getFooterLayout().getPullLabel();
         this.mNoMoreLabel = getResources().getString(R.string.no_mor_data);
+    }
+
+    @Override
+    protected void onPtrRestoreInstanceState(Bundle savedInstanceState) {
+        mNoMore = savedInstanceState.getBoolean("noMore");
+        mNoMoreLabel = savedInstanceState.getCharSequence("noMoreLabel");
+        mPullLabel = savedInstanceState.getCharSequence("pullLabel");
+    }
+
+    @Override
+    protected void onPtrSaveInstanceState(Bundle saveState) {
+        saveState.putBoolean("noMore", mNoMore);
+        saveState.putCharSequence("noMoreLabel", mNoMoreLabel);
+        saveState.putCharSequence("pullLabel", mPullLabel);
     }
 
 
